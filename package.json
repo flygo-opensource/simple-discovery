@@ -1,14 +1,14 @@
 {
-  "name": "ohayo",
+  "name": "simple-discovery",
   "private": true,
   "packageManager": "bun@1.4.2",
-  "description": "Ohayo discovery transports: one signed envelope, several ways to deliver it",
+  "description": "Discovery transports sharing one signed Ohayo envelope, several ways to deliver it",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "build": "bun run --filter '@ohayo/*' build",
-    "test": "bun run --filter '@ohayo/*' test"
+    "build": "bun run --filter '@simple-discovery/*' build",
+    "test": "bun run --filter '@simple-discovery/*' test"
   },
   "license": "MIT"
 }

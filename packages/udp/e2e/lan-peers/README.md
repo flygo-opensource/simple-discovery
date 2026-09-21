@@ -1,6 +1,6 @@
 # E2E chế độ peers giữa hai máy thật
 
-Dành cho người phát triển `@ohayo/udp`; thư mục này không nằm trong gói publish.
+Dành cho người phát triển `@simple-discovery/udp`; thư mục này không nằm trong gói publish.
 
 Peers chỉ có ý nghĩa giữa nhiều máy, nên có hai lớp test:
 

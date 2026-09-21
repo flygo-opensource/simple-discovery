@@ -1,16 +1,16 @@
-# Ohayo
+# simple-discovery
 
-Discovery transports that share one contract. Every package implements the same `Discovery<T>`:
+Discovery transports that share one contract, the Ohayo discovery envelope. Every package implements the same `Discovery<T>`:
 an `Observable` of `DiscoveryMessage<T>` plus `broadcast(message)`. An application can switch how
 nodes find each other without changing the code that consumes discovery.
 
 | Package | Directory | How nodes find each other |
 | --- | --- | --- |
-| [`@ohayo/udp`](packages/udp/README.md) | [`packages/udp/`](packages/udp) | Signed UDP packets over multicast, explicit peers (IP or hostname), or both. Works over VPNs such as NetBird or WireGuard with `multicast: false`. |
-| [`@ohayo/http`](packages/http/README.md) | [`packages/http/`](packages/http) | An HTTP registry; nodes register, heartbeat and deregister over HTTP. |
+| [`@simple-discovery/udp`](packages/udp/README.md) | [`packages/udp/`](packages/udp) | Signed UDP packets over multicast, explicit peers (IP or hostname), or both. Works over VPNs such as NetBird or WireGuard with `multicast: false`. |
+| [`@simple-discovery/http`](packages/http/README.md) | [`packages/http/`](packages/http) | An HTTP registry; nodes register, heartbeat and deregister over HTTP. |
 
 ```ts
-import { UdpDiscovery } from '@ohayo/udp'
+import { UdpDiscovery } from '@simple-discovery/udp'
 
 const discovery = new UdpDiscovery<{ name: string }>({
   namespace: 'shop',
@@ -31,7 +31,7 @@ await discovery.broadcast({
 })
 ```
 
-Used by Spider Mesh (`@spider-mesh/tcp`) for PM2/Linux deployments.
+Used by Spider Mesh (`@spider-mesh/tcp`) and LiveQuery for discovery on their networks.
 
 ## Development
 

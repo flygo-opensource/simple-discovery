@@ -1,13 +1,13 @@
 {
-  "name": "@ohayo/http",
+  "name": "@simple-discovery/http",
   "version": "3.0.0",
   "description": "Generic HTTP registry discovery transport using the Ohayo discovery envelope",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flygo-opensource/ohayo.git",
+    "url": "git+https://github.com/flygo-opensource/simple-discovery.git",
     "directory": "packages/http"
   },
-  "homepage": "https://github.com/flygo-opensource/ohayo/tree/main/packages/http#readme",
+  "homepage": "https://github.com/flygo-opensource/simple-discovery/tree/main/packages/http#readme",
   "type": "module",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",

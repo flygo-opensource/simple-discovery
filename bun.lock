@@ -6,7 +6,7 @@
       "name": "ohayo",
     },
     "packages/http": {
-      "name": "@ohayo/http",
+      "name": "@simple-discovery/http",
       "version": "3.0.0",
       "dependencies": {
         "rxjs": "^7.8.2",
@@ -18,7 +18,7 @@
       },
     },
     "packages/udp": {
-      "name": "@ohayo/udp",
+      "name": "@simple-discovery/udp",
       "version": "3.0.0",
       "dependencies": {
         "msgpackr": "^1.12.1",
@@ -44,9 +44,9 @@
 
     "@msgpackr-extract/msgpackr-extract-win32-x64": ["@msgpackr-extract/msgpackr-extract-win32-x64@3.0.4", "", { "os": "win32", "cpu": "x64" }, "sha512-CmCXPQrkbwExx3j946/PtHWHbYJiCRBRDl4BlkRQcJB/YOwQxJRTpoo7aTsortjgoJ1x7opzTSxn7C+ASSLVjQ=="],
 
-    "@ohayo/http": ["@ohayo/http@workspace:packages/http"],
+    "@simple-discovery/http": ["@simple-discovery/http@workspace:packages/http"],
 
-    "@ohayo/udp": ["@ohayo/udp@workspace:packages/udp"],
+    "@simple-discovery/udp": ["@simple-discovery/udp@workspace:packages/udp"],
 
     "@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],
 

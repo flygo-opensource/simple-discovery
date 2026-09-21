@@ -190,7 +190,7 @@ async function waitUntil(check: () => boolean, timeoutMs = 1_000) {
     return true
 }
 
-describe.each<Delivery>(['first-bound', 'last-bound'])('@ohayo/udp peers across a LAN without multicast (%s)', delivery => {
+describe.each<Delivery>(['first-bound', 'last-bound'])('@simple-discovery/udp peers across a LAN without multicast (%s)', delivery => {
     test('control: hosts without peers never see each other', async () => {
         // Chứng minh LAN giả thật sự cách ly multicast giữa các host. Nếu ca này hỏng thì mọi ca
         // "peers hoạt động" bên dưới không còn chứng minh được gì.

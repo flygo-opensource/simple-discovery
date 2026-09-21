@@ -1,11 +1,11 @@
-# Ohayo HTTP Discovery
+# @simple-discovery/http
 
-Ohayo HTTP Discovery la transport discovery dua tren HTTP registry. No implement chung contract `Discovery<T>` de app co the doi transport giua HTTP, UDP, TCP hoac mesh ma khong doi logic gateway/service.
+`@simple-discovery/http` la transport discovery dua tren HTTP registry. No implement chung contract `Discovery<T>` de app co the doi transport giua HTTP, UDP, TCP hoac mesh ma khong doi logic gateway/service.
 
 HTTP phu hop production hon UDP multicast vi de firewall, de quan sat bang log/metrics, co request timeout, retry, heartbeat va graceful deregister ro rang.
 
 ```bash
-bun add @ohayo/http
+bun add @simple-discovery/http
 ```
 
 Package export `HttpDiscovery<T>`, `Discovery<T>`, `DiscoveryMessage<T>`,
@@ -40,12 +40,12 @@ export type Discovery<T> = Observable<DiscoveryMessage<T>> & {
 }
 ```
 
-Day la cung structural contract voi `@ohayo/udp`. HTTP co them helper
+Day la cung structural contract voi `@simple-discovery/udp`. HTTP co them helper
 `DiscoveryOfflineData` va `isDiscoveryOfflineData()` vi registry co the phat su kien
 TTL/deregister. De nhan offline event type-safe, dua no vao payload union:
 
 ```ts
-import { HttpDiscovery, type DiscoveryOfflineData } from '@ohayo/http'
+import { HttpDiscovery, type DiscoveryOfflineData } from '@simple-discovery/http'
 
 type Metadata = ServiceMetadata | DiscoveryOfflineData
 const discovery = new HttpDiscovery<Metadata>(options)
@@ -330,7 +330,7 @@ HTTP server/client cung quan ly registry liveness:
 Consumers should handle offline events by checking:
 
 ```ts
-import { isDiscoveryOfflineData } from '@ohayo/http'
+import { isDiscoveryOfflineData } from '@simple-discovery/http'
 
 discovery.subscribe(message => {
   if (isDiscoveryOfflineData(message.data)) {
@@ -343,11 +343,11 @@ discovery.subscribe(message => {
 
 ## Livequery Integration
 
-`ApiGatewayHandler` va `ApiServiceLinker` nhan discovery theo structural contract, nen Ohayo HTTP
+`ApiGatewayHandler` va `ApiServiceLinker` nhan discovery theo structural contract, nen `@simple-discovery/http`
 instance duoc truyen thang vao constructor:
 
 ```ts
-import { HttpDiscovery } from '@ohayo/http'
+import { HttpDiscovery } from '@simple-discovery/http'
 import {
   ApiGatewayHandler,
   ApiServiceLinker,

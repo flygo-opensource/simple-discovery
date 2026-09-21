@@ -1,4 +1,4 @@
-# @ohayo/udp
+# @simple-discovery/udp
 
 Discovery qua UDP: các process trong cùng mạng LAN công bố thông tin của mình và nhận thông tin của
 nhau, không cần server trung tâm. Tìm nhau bằng multicast, hoặc bằng danh sách địa chỉ khi mạng chặn
@@ -10,7 +10,7 @@ Gói không phụ thuộc framework nào: payload là dữ liệu tuỳ ý của
 ## Cài đặt
 
 ```bash
-bun add @ohayo/udp rxjs
+bun add @simple-discovery/udp rxjs
 ```
 
 Chạy trên Node.js và Bun.
@@ -18,7 +18,7 @@ Chạy trên Node.js và Bun.
 ## Ví dụ
 
 ```ts
-import { UdpDiscovery } from '@ohayo/udp'
+import { UdpDiscovery } from '@simple-discovery/udp'
 
 type Worker = { name: string; httpPort: number }
 
@@ -97,7 +97,7 @@ dùng được, liệt kê các máy trong `peers`. Mỗi mục là một IPv4, 
 gửi, cần bản ghi IPv4), hoặc 3 octet đầu để gửi tới cả dải `/24`:
 
 ```ts
-import { UdpDiscovery } from '@ohayo/udp'
+import { UdpDiscovery } from '@simple-discovery/udp'
 
 const discovery = new UdpDiscovery<{ name: string }>({
   namespace: 'shop',
@@ -120,7 +120,7 @@ VPN kiểu này chỉ chuyển gói unicast, không chuyển multicast hay broad
 các máy bằng IP hoặc tên DNS trong VPN:
 
 ```ts
-import { UdpDiscovery } from '@ohayo/udp'
+import { UdpDiscovery } from '@simple-discovery/udp'
 
 const discovery = new UdpDiscovery<{ name: string }>({
   namespace: 'shop',
@@ -151,7 +151,7 @@ discovery tự gửi lại message gần nhất của mình.
 ## Vòng đời
 
 ```ts
-import { UdpDiscovery } from '@ohayo/udp'
+import { UdpDiscovery } from '@simple-discovery/udp'
 import { filter, firstValueFrom } from 'rxjs'
 
 const discovery = new UdpDiscovery<{ name: string }>({
@@ -177,7 +177,7 @@ discovery.close() // gọi lại nhiều lần cũng không sao
 ```ts
 import { SpiderMesh, Topology, type SpiderMeshNode } from '@spider-mesh/core'
 import { Http2Rpc, TopologyDiscoveryAdapter } from '@spider-mesh/tcp'
-import { UdpDiscovery } from '@ohayo/udp'
+import { UdpDiscovery } from '@simple-discovery/udp'
 
 const udp = new UdpDiscovery<SpiderMeshNode>({
   namespace: process.env.SPIDERMESH_NAMESPACE ?? 'default', // phải trùng namespace của mesh

@@ -18,7 +18,7 @@ export type DiscoveryOptions = {
 }
 
 /**
- * Generic discovery contract shared with `@ohayo/udp`.
+ * Generic discovery contract shared with `@simple-discovery/udp`.
  */
 export type Discovery<T> = Observable<DiscoveryMessage<T>> & {
     broadcast(message: DiscoveryMessage<T>): Promise<void>

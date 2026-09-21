@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E2E chế độ peers của @ohayo/udp giữa máy này và MỘT máy Linux cùng LAN vật lý.
+# E2E chế độ peers của @simple-discovery/udp giữa máy này và MỘT máy Linux cùng LAN vật lý.
 #
 #   REMOTE=user@linux-box \
 #   REMOTE_LAN_IP=192.168.1.20 LOCAL_LAN_IP=192.168.1.10 \
@@ -26,7 +26,7 @@ BUN_VERSION=${BUN_VERSION:-1.4.2}
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$REMOTE")
-LOCAL_TMP=$(mktemp -d -t ohayo-lan-peers)
+LOCAL_TMP=$(mktemp -d -t simple-discovery-lan-peers)
 REMOTE_DIR=""
 
 cleanup() {
@@ -49,7 +49,7 @@ esac
 echo "==> fetching @oven/$BUN_PKG@$BUN_VERSION for the remote"
 (cd "$LOCAL_TMP" && npm pack "@oven/$BUN_PKG@$BUN_VERSION" --silent >/dev/null && tar xzf ./*.tgz)
 
-REMOTE_DIR=$("${SSH[@]}" "mktemp -d /tmp/ohayo-lan-peers.XXXXXX")
+REMOTE_DIR=$("${SSH[@]}" "mktemp -d /tmp/simple-discovery-lan-peers.XXXXXX")
 echo "==> staging into $REMOTE:$REMOTE_DIR"
 scp -q -o BatchMode=yes "$LOCAL_TMP/package/bin/bun" "$LOCAL_TMP/agent.js" "$REMOTE:$REMOTE_DIR/"
 "${SSH[@]}" "chmod +x '$REMOTE_DIR/bun'"

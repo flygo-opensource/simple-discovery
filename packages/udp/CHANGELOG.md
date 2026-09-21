@@ -24,7 +24,7 @@
 ### Breaking
 - First major release of the signed generic `DiscoveryMessage<T>` UDP transport.
 - Consumers migrating from Spider Mesh TCP's legacy `UdpDiscovery` must import `UdpDiscovery` from
-  `@ohayo/udp` and provide `namespace`, required `tags`, and an optional local `node_id`.
+  `@simple-discovery/udp` and provide `namespace`, required `tags`, and an optional local `node_id`.
 
 ### Added
 - HMAC-signed msgpack packets, anti-replay TTL, namespace/tag filtering, explicit peers, local relay,

@@ -1,13 +1,13 @@
 {
-  "name": "@ohayo/udp",
+  "name": "@simple-discovery/udp",
   "version": "3.0.0",
   "description": "Generic signed UDP discovery transport using the Ohayo discovery envelope",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flygo-opensource/ohayo.git",
+    "url": "git+https://github.com/flygo-opensource/simple-discovery.git",
     "directory": "packages/udp"
   },
-  "homepage": "https://github.com/flygo-opensource/ohayo/tree/main/packages/udp#readme",
+  "homepage": "https://github.com/flygo-opensource/simple-discovery/tree/main/packages/udp#readme",
   "type": "module",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",

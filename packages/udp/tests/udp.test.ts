@@ -17,7 +17,7 @@ afterEach(() => {
     for (const discovery of opened.splice(0)) discovery.close()
 })
 
-describe('@ohayo/udp', () => {
+describe('@simple-discovery/udp', () => {
     test('is a generic Discovery<T> and broadcasts its envelope', async () => {
         const port = randomPort()
         const receiver = createDiscovery('receiver', port)
