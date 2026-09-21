@@ -1,6 +1,6 @@
 # simple-discovery
 
-Discovery transports that share one contract, the Ohayo discovery envelope. Every package implements the same `Discovery<T>`:
+Discovery transports that share one contract, one signed discovery envelope. Every package implements the same `Discovery<T>`:
 an `Observable` of `DiscoveryMessage<T>` plus `broadcast(message)`. An application can switch how
 nodes find each other without changing the code that consumes discovery.
 
@@ -33,6 +33,23 @@ await discovery.broadcast({
 
 Used by Spider Mesh (`@spider-mesh/tcp`) and LiveQuery for discovery on their networks.
 
+## Configuration
+
+Options passed to the constructor win; otherwise each package reads environment variables with the
+`SIMPLE_DISCOVERY_` prefix.
+
+| Variable | Package | Default |
+| --- | --- | --- |
+| `SIMPLE_DISCOVERY_KEY` | udp, http | `'simple-discovery'`. Always set your own key in production. |
+| `SIMPLE_DISCOVERY_PORT` | udp, http | `11001` (udp), `12001` (http) |
+| `SIMPLE_DISCOVERY_UDP_MULTICAST` | udp | on; `off`/`false`/`0` sends to `peers` only |
+| `SIMPLE_DISCOVERY_UDP_MULTICAST_ADDRESS` | udp | `239.0.1.1` |
+| `SIMPLE_DISCOVERY_UDP_WHITELIST_ADDRESS` | udp | none; comma-separated IPs, hostnames or `/24` prefixes |
+| `SIMPLE_DISCOVERY_UDP_BROADCAST_COPIES` | udp | `3` |
+| `SIMPLE_DISCOVERY_UDP_DEBUG`, `SIMPLE_DISCOVERY_HTTP_DEBUG` | udp, http | off; prints network errors to stderr |
+
+These replace the `OHAYO_*` variables of the pre-release `@ohayo/*` packages.
+
 ## Development
 
 This is a [Bun workspace](https://bun.sh/docs/install/workspaces). Each package is built, tested and
@@ -60,7 +77,8 @@ the comments at the top of the script.
 Publish from the package directory, in any order (the packages do not depend on each other):
 
 ```bash
-cd packages/udp && bun run build && bun publish
+(cd packages/udp && bun run build && bun publish)
+(cd packages/http && bun run build && bun publish)
 ```
 
 ## License

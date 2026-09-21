@@ -65,7 +65,7 @@ export class HttpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements
     constructor(options: HttpDiscoveryOptions) {
         super((subscriber: Subscriber<DiscoveryMessage<T>>) => this.#events.subscribe(subscriber))
         this.#options = options
-        this.#key = options.key ?? process.env.OHAYO_DISCOVERY_KEY ?? 'ohayo'
+        this.#key = options.key ?? process.env.SIMPLE_DISCOVERY_KEY ?? 'simple-discovery'
         this.#servers = [...new Set((options.mode === 'client' ? options.servers : [])
             .map(server => server.trim())
             .filter(Boolean)
@@ -81,7 +81,7 @@ export class HttpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements
 
         if (options.mode === 'server') {
             this.#listen(
-                options.port ?? Number(process.env.OHAYO_DISCOVERY_PORT || DEFAULT_PORT),
+                options.port ?? Number(process.env.SIMPLE_DISCOVERY_PORT || DEFAULT_PORT),
                 options.host,
             )
         } else {
@@ -259,7 +259,7 @@ export class HttpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements
             ? this.#options.retryAttempts ?? MAX_RETRY_ATTEMPTS
             : 0
         if (this.#closed || attempt >= retryAttempts) {
-            if (!this.#closed && process.env.OHAYO_HTTP_DEBUG) console.error(error)
+            if (!this.#closed && process.env.SIMPLE_DISCOVERY_HTTP_DEBUG) console.error(error)
             return
         }
         const delay = Math.min(30_000, 250 * 2 ** attempt)

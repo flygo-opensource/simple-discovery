@@ -67,19 +67,19 @@ discovery.close()
 | `namespace` | – | *(bắt buộc)* | Chỉ nhận message cùng namespace. |
 | `tags` | – | *(bắt buộc)* | Chỉ nhận message chứa đủ các tag này. |
 | `node_id` | – | – | Nếu đặt: message gửi đi phải mang đúng ID này, và bỏ qua message nhận về có ID này. |
-| `key` | `OHAYO_DISCOVERY_KEY` | `'ohayo'` | Khoá ký gói (HMAC-SHA256). **Luôn đặt khoá riêng**, xem bên dưới. |
-| `port` | `OHAYO_DISCOVERY_PORT` | `11001` | Cổng UDP; mọi process phải dùng cùng cổng. |
-| `multicast` | `OHAYO_UDP_MULTICAST` (`off`/`false`/`0` để tắt) | `true` | Gửi tới nhóm multicast. Tắt khi mạng không chuyển multicast (VPN). |
-| `multicastAddress` | `OHAYO_UDP_MULTICAST_ADDRESS` | `239.0.1.1` | Nhóm multicast. |
-| `peers` | `OHAYO_UDP_WHITELIST_ADDRESS` (phân cách bằng dấu phẩy) | – | IP, hostname hoặc dải `/24` để gửi trực tiếp, xem bên dưới. |
+| `key` | `SIMPLE_DISCOVERY_KEY` | `'simple-discovery'` | Khoá ký gói (HMAC-SHA256). **Luôn đặt khoá riêng**, xem bên dưới. |
+| `port` | `SIMPLE_DISCOVERY_PORT` | `11001` | Cổng UDP; mọi process phải dùng cùng cổng. |
+| `multicast` | `SIMPLE_DISCOVERY_UDP_MULTICAST` (`off`/`false`/`0` để tắt) | `true` | Gửi tới nhóm multicast. Tắt khi mạng không chuyển multicast (VPN). |
+| `multicastAddress` | `SIMPLE_DISCOVERY_UDP_MULTICAST_ADDRESS` | `239.0.1.1` | Nhóm multicast. |
+| `peers` | `SIMPLE_DISCOVERY_UDP_WHITELIST_ADDRESS` (phân cách bằng dấu phẩy) | – | IP, hostname hoặc dải `/24` để gửi trực tiếp, xem bên dưới. |
 | `packetTtlMs` | – | `30000` | Bỏ gói có thời gian lệch hơn mức này. |
-| `broadcastCopies` | `OHAYO_UDP_BROADCAST_COPIES` | `3` | Mỗi lần broadcast gửi mấy bản, bù cho gói bị mất. |
+| `broadcastCopies` | `SIMPLE_DISCOVERY_UDP_BROADCAST_COPIES` | `3` | Mỗi lần broadcast gửi mấy bản, bù cho gói bị mất. |
 
-`OHAYO_UDP_DEBUG=1` in lỗi mạng ra stderr.
+`SIMPLE_DISCOVERY_UDP_DEBUG=1` in lỗi mạng ra stderr.
 
 ## Chạy ở production
 
-- **Khoá**: giá trị mặc định `'ohayo'` là công khai, ai trong mạng cũng giả mạo được message. Mọi
+- **Khoá**: giá trị mặc định `'simple-discovery'` là công khai, ai trong mạng cũng giả mạo được message. Mọi
   process của một hệ thống dùng chung một khoá bí mật; hệ thống khác dùng khoá khác.
 - **Đồng hồ**: gói lệch giờ quá `packetTtlMs` (30 giây) bị bỏ **không báo lỗi**, để chống phát lại
   gói cũ. Các máy phải đồng bộ giờ (NTP).
@@ -134,7 +134,7 @@ const discovery = new UdpDiscovery<{ name: string }>({
 Hoặc chỉ bằng biến môi trường:
 
 ```bash
-OHAYO_UDP_MULTICAST=off OHAYO_UDP_WHITELIST_ADDRESS=worker-1.netbird.cloud,worker-2.netbird.cloud
+SIMPLE_DISCOVERY_UDP_MULTICAST=off SIMPLE_DISCOVERY_UDP_WHITELIST_ADDRESS=worker-1.netbird.cloud,worker-2.netbird.cloud
 ```
 
 - Chính sách truy cập của VPN phải cho phép UDP cổng `port` giữa các máy.

@@ -101,9 +101,9 @@ Options:
 - `namespace`: discovery namespace bat buoc.
 - `tags`: required tags bat buoc.
 - `node_id`: node id co dinh cho instance hien tai.
-- `key`: bearer token. Mac dinh doc `OHAYO_DISCOVERY_KEY`, fallback development la `ohayo`.
+- `key`: bearer token. Mac dinh doc `SIMPLE_DISCOVERY_KEY`, fallback development la `simple-discovery`.
 - `host`: server-only bind address; bo trong de Node bind tren cac interface mac dinh.
-- `port`: server-only registry port. Mac dinh doc `OHAYO_DISCOVERY_PORT`, fallback `12001`; `0` chon random free port.
+- `port`: server-only registry port. Mac dinh doc `SIMPLE_DISCOVERY_PORT`, fallback `12001`; `0` chon random free port.
 - `ttlMs`: server-only expiry window cho missed heartbeat; mac dinh 35 giay.
 - `servers`: client-only, bat buoc va khong duoc rong. Moi entry la `host:port` hoac HTTP(S) URL.
 - `heartbeatMs`: client-only heartbeat interval cho last broadcast message; mac dinh 10 giay, `0` de tat.
@@ -116,14 +116,14 @@ nhan `port`/`ttlMs`. Runtime cung reject client co `servers: []`.
 ## Env
 
 ```sh
-OHAYO_DISCOVERY_KEY=shared-secret
-OHAYO_DISCOVERY_PORT=12001
+SIMPLE_DISCOVERY_KEY=shared-secret
+SIMPLE_DISCOVERY_PORT=12001
 ```
 
-- `namespace` duoc truyen bang constructor; package khong doc `OHAYO_DISCOVERY_NAMESPACE`.
-- `OHAYO_DISCOVERY_PORT` la registry port noi bo, khong phai public API port.
+- `namespace` duoc truyen bang constructor; package khong doc `SIMPLE_DISCOVERY_NAMESPACE`.
+- `SIMPLE_DISCOVERY_PORT` la registry port noi bo, khong phai public API port.
 - Danh sach server khong doc tu environment; client phai nhan `servers` trong constructor.
-- Tat ca environment variable cua package bat dau bang `OHAYO_`.
+- Tat ca environment variable cua package bat dau bang `SIMPLE_DISCOVERY_`.
 
 ## Server Mode
 
@@ -166,7 +166,7 @@ Dang ky hoac refresh node metadata.
 Headers:
 
 ```txt
-Authorization: Bearer <OHAYO_DISCOVERY_KEY>
+Authorization: Bearer <SIMPLE_DISCOVERY_KEY>
 Content-Type: application/json
 ```
 
@@ -217,7 +217,7 @@ Graceful deregistration.
 Headers:
 
 ```txt
-Authorization: Bearer <OHAYO_DISCOVERY_KEY>
+Authorization: Bearer <SIMPLE_DISCOVERY_KEY>
 ```
 
 Behavior:
@@ -249,7 +249,7 @@ Authenticated debug/snapshot endpoint.
 Headers:
 
 ```txt
-Authorization: Bearer <OHAYO_DISCOVERY_KEY>
+Authorization: Bearer <SIMPLE_DISCOVERY_KEY>
 ```
 
 Response:
@@ -390,7 +390,7 @@ goi `discovery.close()`. Khong chia se cung mot instance cho hai linker co lifec
 Minimum security is bearer auth:
 
 ```txt
-Authorization: Bearer <OHAYO_DISCOVERY_KEY>
+Authorization: Bearer <SIMPLE_DISCOVERY_KEY>
 ```
 
 Operational requirements:
@@ -398,7 +398,7 @@ Operational requirements:
 - Treat registry port as internal-only.
 - Do not expose it directly to the internet.
 - Use firewall, private subnet, service mesh, or network policy.
-- Rotate `OHAYO_DISCOVERY_KEY` like any shared secret.
+- Rotate `SIMPLE_DISCOVERY_KEY` like any shared secret.
 - Log rejected auth attempts.
 
 Bearer auth proves the sender knows the secret, but it does not sign the body. If an implementation needs replay/body integrity, add timestamped HMAC headers as an extension without changing `DiscoveryMessage<T>`.

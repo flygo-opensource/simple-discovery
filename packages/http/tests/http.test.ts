@@ -20,7 +20,7 @@ describe('HttpDiscovery', () => {
         const registry = track(new HttpDiscovery<Metadata>({
             mode: 'server',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'gateway',
             key: 'secret',
             port: 0,
@@ -31,7 +31,7 @@ describe('HttpDiscovery', () => {
         const service = track(new HttpDiscovery<Metadata>({
             mode: 'client',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'service',
             key: 'secret',
             servers: [`127.0.0.1:${registry.port}`],
@@ -49,7 +49,7 @@ describe('HttpDiscovery', () => {
         const registry = track(new HttpDiscovery<Metadata>({
             mode: 'server',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             key: 'secret',
             port: 0,
         }))
@@ -67,7 +67,7 @@ describe('HttpDiscovery', () => {
         const first = track(new HttpDiscovery<Metadata>({
             mode: 'server',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'server-1',
             key: 'secret',
             port: 0,
@@ -75,7 +75,7 @@ describe('HttpDiscovery', () => {
         const second = track(new HttpDiscovery<Metadata>({
             mode: 'server',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'server-2',
             key: 'secret',
             port: 0,
@@ -85,7 +85,7 @@ describe('HttpDiscovery', () => {
         const client = track(new HttpDiscovery<Metadata>({
             mode: 'client',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'service',
             key: 'secret',
             servers: [
@@ -107,7 +107,7 @@ describe('HttpDiscovery', () => {
         expect(() => new HttpDiscovery<Metadata>({
             mode: 'client',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             servers: [],
         })).toThrow('requires at least one server')
     })
@@ -116,7 +116,7 @@ describe('HttpDiscovery', () => {
         const server = track(new HttpDiscovery<Metadata>({
             mode: 'server',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'server',
             key: 'secret',
             port: 0,
@@ -126,7 +126,7 @@ describe('HttpDiscovery', () => {
         const client = track(new HttpDiscovery<Metadata>({
             mode: 'client',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'service',
             key: 'secret',
             servers: [`127.0.0.1:${server.port}`],
@@ -145,7 +145,7 @@ describe('HttpDiscovery', () => {
         const server = track(new HttpDiscovery<Metadata>({
             mode: 'server',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'server',
             key: 'secret',
             port: 0,
@@ -156,7 +156,7 @@ describe('HttpDiscovery', () => {
         const client = track(new HttpDiscovery<Metadata>({
             mode: 'client',
             namespace: 'test',
-            tags: ['ohayo'],
+            tags: ['simple-discovery'],
             node_id: 'service',
             key: 'secret',
             servers: [`127.0.0.1:${server.port}`],
@@ -183,7 +183,7 @@ function message(node_id: string, data: Metadata): DiscoveryMessage<Metadata> {
     return {
         node_id,
         namespace: 'test',
-        tags: ['ohayo'],
+        tags: ['simple-discovery'],
         version: String(now),
         created_at: now,
         seq: 1,

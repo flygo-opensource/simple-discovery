@@ -62,15 +62,15 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
     constructor(options: UdpDiscoveryOptions) {
         super((subscriber: Subscriber<DiscoveryMessage<T>>) => this.#events.subscribe(subscriber))
         this.#options = options
-        this.#key = options.key ?? process.env.OHAYO_DISCOVERY_KEY ?? 'ohayo'
-        this.#port = options.port ?? Number(process.env.OHAYO_DISCOVERY_PORT || DEFAULT_PORT)
+        this.#key = options.key ?? process.env.SIMPLE_DISCOVERY_KEY ?? 'simple-discovery'
+        this.#port = options.port ?? Number(process.env.SIMPLE_DISCOVERY_PORT || DEFAULT_PORT)
         this.#multicastAddress = options.multicastAddress
-            ?? process.env.OHAYO_UDP_MULTICAST_ADDRESS
+            ?? process.env.SIMPLE_DISCOVERY_UDP_MULTICAST_ADDRESS
             ?? DEFAULT_MULTICAST_ADDRESS
         this.#packetTtlMs = options.packetTtlMs ?? DEFAULT_PACKET_TTL_MS
         this.#broadcastCopies = Math.max(1, options.broadcastCopies
-            ?? Number(process.env.OHAYO_UDP_BROADCAST_COPIES || 3))
-        const multicast = options.multicast ?? !/^(0|false|off|no)$/i.test(process.env.OHAYO_UDP_MULTICAST ?? '')
+            ?? Number(process.env.SIMPLE_DISCOVERY_UDP_BROADCAST_COPIES || 3))
+        const multicast = options.multicast ?? !/^(0|false|off|no)$/i.test(process.env.SIMPLE_DISCOVERY_UDP_MULTICAST ?? '')
         this.#peers = [...new Set([
             ...(multicast ? [this.#multicastAddress] : []),
             ...this.#expandPeers(options.peers ?? this.#envPeers()),
@@ -299,7 +299,7 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
     }
 
     #envPeers() {
-        return (process.env.OHAYO_UDP_WHITELIST_ADDRESS || '')
+        return (process.env.SIMPLE_DISCOVERY_UDP_WHITELIST_ADDRESS || '')
             .split(',')
             .map(value => value.trim())
             .filter(Boolean)
@@ -318,7 +318,7 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
     }
 
     #onError(error: unknown) {
-        if (!this.#isClosed() && process.env.OHAYO_UDP_DEBUG) console.error(error)
+        if (!this.#isClosed() && process.env.SIMPLE_DISCOVERY_UDP_DEBUG) console.error(error)
     }
 
     #closeSocket(socket: Socket) {

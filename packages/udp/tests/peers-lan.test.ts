@@ -145,7 +145,7 @@ function spawn(host: FakeHost, node_id: string, peers: string[] = [], multicast?
     try {
         const discovery = new LanDiscovery({
             namespace: 'lan-test',
-            tags: ['ohayo', 'lan'],
+            tags: ['simple-discovery', 'lan'],
             node_id,
             key: 'lan-key',
             port: PORT,
@@ -173,7 +173,7 @@ function announce(discovery: LanDiscovery, node_id: string, host: FakeHost) {
     return discovery.broadcast({
         node_id,
         namespace: 'lan-test',
-        tags: ['ohayo', 'lan'],
+        tags: ['simple-discovery', 'lan'],
         version: '1',
         created_at: Date.now(),
         seq: 1,
@@ -330,7 +330,7 @@ describe.each<Delivery>(['first-bound', 'last-bound'])('@simple-discovery/udp pe
 
         // Một thay đổi sau đó của node cũ vẫn tới node mới dù node mới không có trong `peers`.
         await oldNode.broadcast({
-            node_id: 'old', namespace: 'lan-test', tags: ['ohayo', 'lan'],
+            node_id: 'old', namespace: 'lan-test', tags: ['simple-discovery', 'lan'],
             version: '2', created_at: Date.now(), seq: 2, data: { host: hostB.ip },
         })
         expect(await waitUntil(() => (seenByNew.get('old') ?? []).some(copy => copy.seq === 2))).toBe(true)
@@ -345,7 +345,7 @@ describe.each<Delivery>(['first-bound', 'last-bound'])('@simple-discovery/udp pe
         const seen = record(receiver)
 
         await sender.broadcast({
-            node_id: 'sender', namespace: 'lan-test', tags: ['ohayo', 'lan'],
+            node_id: 'sender', namespace: 'lan-test', tags: ['simple-discovery', 'lan'],
             version: '1', created_at: Date.now(), seq: 1, data: { host: host.ip },
         }, '127.0.0.1')
 

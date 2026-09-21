@@ -9,7 +9,7 @@ const log = (event: Record<string, unknown>) => console.log(JSON.stringify({ at:
 
 const discovery = new UdpDiscovery<{ name: string }>({
     namespace,
-    tags: ['ohayo', 'peers-e2e'],
+    tags: ['simple-discovery', 'peers-e2e'],
     node_id: name,
     key: process.env.AGENT_KEY!,
     port: Number(process.env.AGENT_PORT),
@@ -27,7 +27,7 @@ await new Promise<void>(resolve => {
 log({ ev: 'ready', peers, group: process.env.AGENT_GROUP })
 
 const announce = () => discovery.broadcast({
-    node_id: name, namespace, tags: ['ohayo', 'peers-e2e'],
+    node_id: name, namespace, tags: ['simple-discovery', 'peers-e2e'],
     version: '1', created_at: Date.now(), seq: 1, data: { name },
 })
 await announce()

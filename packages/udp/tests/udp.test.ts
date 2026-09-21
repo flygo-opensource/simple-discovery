@@ -33,7 +33,7 @@ describe('@simple-discovery/udp', () => {
         expect(await received).toMatchObject({
             node_id: 'sender',
             namespace: 'test',
-            tags: ['ohayo', 'test'],
+            tags: ['simple-discovery', 'test'],
             seq: 1,
             data: { role: 'sender', value: 1 },
         })
@@ -87,7 +87,7 @@ describe('@simple-discovery/udp', () => {
         receiver.subscribe(() => count++)
 
         await sendRaw(rawPacket('test-key', { ...message('sender', 1), namespace: 'other' }), port)
-        await sendRaw(rawPacket('test-key', { ...message('sender', 2), tags: ['ohayo'] }), port)
+        await sendRaw(rawPacket('test-key', { ...message('sender', 2), tags: ['simple-discovery'] }), port)
         await sendRaw(rawPacket('test-key', message('receiver', 3)), port)
         await Bun.sleep(150)
         expect(count).toBe(0)
@@ -126,7 +126,7 @@ describe('@simple-discovery/udp', () => {
         await ready(sender)
         await expect(sender.broadcast({ ...message('other', 1) })).rejects.toThrow('node_id')
         await expect(sender.broadcast({ ...message('sender', 1), namespace: 'other' })).rejects.toThrow('namespace')
-        await expect(sender.broadcast({ ...message('sender', 1), tags: ['ohayo'] })).rejects.toThrow('tags')
+        await expect(sender.broadcast({ ...message('sender', 1), tags: ['simple-discovery'] })).rejects.toThrow('tags')
     })
 
     test('close is idempotent and exposes lifecycle status', async () => {
@@ -147,7 +147,7 @@ function createDiscovery(
 ) {
     const discovery = new UdpDiscovery<Metadata>({
         namespace: 'test',
-        tags: ['ohayo', 'test'],
+        tags: ['simple-discovery', 'test'],
         node_id,
         key: 'test-key',
         port,
@@ -162,7 +162,7 @@ function message(node_id: string, seq: number): DiscoveryMessage<Metadata> {
     return {
         node_id,
         namespace: 'test',
-        tags: ['ohayo', 'test'],
+        tags: ['simple-discovery', 'test'],
         version: String(seq),
         created_at: Date.now(),
         seq,
