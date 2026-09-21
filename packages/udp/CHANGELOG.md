@@ -2,6 +2,8 @@
 
 ## 3.0.1
 
+- Self-contained: the shared core (contract, signed packet, broker base class) is bundled into this
+  package, code and types, so it installs no other `@simple-discovery/*` package.
 - Ship `AGENT_GUIDE.md`: a step-by-step integration guide for coding agents (heartbeat and offline
   detection template, required rules, env vars, network modes, self-checks).
 

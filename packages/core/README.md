@@ -1,7 +1,14 @@
-# @simple-discovery/core
+# @simple-discovery/core (nội bộ)
 
-Phần dùng chung của các transport simple-discovery. Ứng dụng thường **không** cần cài trực tiếp: mỗi
-transport (`@simple-discovery/redis`, `nats`, `amqp`) đã re-export mọi thứ trong gói này.
+Phần dùng chung của các transport simple-discovery. Gói này **không được publish** (`private: true`):
+lúc build, tsup nhúng cả code lẫn type của nó vào từng gói `udp`, `http`, `redis`, `nats`, `amqp`, nên
+người dùng chỉ cài đúng một gói. Mọi thứ dưới đây được mỗi gói đó re-export, ví dụ
+`import { BrokerDiscovery } from '@simple-discovery/redis'`.
+
+Cách nhúng: `tsup.base.ts` ở root đặt `noExternal: ['@simple-discovery/core']` cho JS; `paths` trong
+`tsconfig.json` của mỗi gói trỏ `@simple-discovery/core` về `../core/src/index.ts` để type được nhúng
+vào `build/index.d.ts`. Gói nào dùng core chỉ cần import `@simple-discovery/core`; workspace root đã
+khai nó là devDependency.
 
 Gói gồm:
 
@@ -13,7 +20,8 @@ Gói gồm:
 
 ## Viết một transport mới
 
-Lớp con chỉ lo chuyển bytes; lọc namespace/tag, ký, chống phát lại và trả lời `hello` do lớp cơ sở làm.
+Tạo `packages/<tên>` theo mẫu `packages/redis` (cùng `tsconfig.json` với `paths`, `"build": "tsup --config
+../../tsup.base.ts"`), rồi viết lớp con. Lớp con chỉ lo chuyển bytes; lọc namespace/tag, ký, chống phát lại và trả lời `hello` do lớp cơ sở làm.
 
 ```ts
 import { BrokerDiscovery, type BrokerDiscoveryOptions } from '@simple-discovery/core'

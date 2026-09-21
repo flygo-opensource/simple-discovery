@@ -9,7 +9,7 @@ import {
     type Discovery,
     type DiscoveryMessage,
     type DiscoveryOptions,
-} from './types.js'
+} from '@simple-discovery/core'
 
 export type UdpDiscoveryOptions = DiscoveryOptions & {
     key?: string

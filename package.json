@@ -10,5 +10,9 @@
     "build": "bun run --filter '@simple-discovery/*' build",
     "test": "bun run --filter '@simple-discovery/*' test"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@simple-discovery/core": "workspace:*",
+    "tsup": "^8.5.1"
+  }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@simple-discovery/core",
   "version": "3.0.0",
-  "description": "Shared contract, signed packet format and broker base class for simple-discovery transports",
+  "description": "Shared contract, signed packet and broker base class, bundled into every simple-discovery package (not published)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/flygo-opensource/simple-discovery.git",
@@ -9,23 +9,11 @@
   },
   "homepage": "https://github.com/flygo-opensource/simple-discovery/tree/main/packages/core#readme",
   "type": "module",
-  "main": "./build/index.js",
-  "types": "./build/index.d.ts",
   "exports": {
-    ".": {
-      "import": {
-        "types": "./build/index.d.ts",
-        "default": "./build/index.js"
-      }
-    }
+    ".": "./src/index.ts"
   },
-  "files": [
-    "build/**/*",
-    "README.md",
-    "CHANGELOG.md"
-  ],
   "scripts": {
-    "build": "rm -rf build && tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json --noEmit",
     "test": "bun test tests/*.test.ts"
   },
   "dependencies": {
@@ -39,7 +27,6 @@
   },
   "license": "MIT",
   "author": "Duong Van Ba",
-  "publishConfig": {
-    "access": "public"
-  }
+  "private": true,
+  "sideEffects": false
 }

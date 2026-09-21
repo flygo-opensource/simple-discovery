@@ -7,10 +7,23 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "build",
-    "rootDir": "src",
-    "types": ["node", "bun"],
-    "skipLibCheck": true
+    "types": [
+      "node",
+      "bun"
+    ],
+    "skipLibCheck": true,
+    "paths": {
+      "@simple-discovery/core": [
+        "../core/src/index.ts"
+      ]
+    }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["build", "node_modules", "tests"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "build",
+    "node_modules",
+    "tests"
+  ]
 }

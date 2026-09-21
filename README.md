@@ -11,7 +11,6 @@ nodes find each other without changing the code that consumes discovery.
 | [`@simple-discovery/redis`](packages/redis/README.md) | [`packages/redis/`](packages/redis) | Redis pub/sub channel per namespace. |
 | [`@simple-discovery/nats`](packages/nats/README.md) | [`packages/nats/`](packages/nats) | NATS subject per namespace. |
 | [`@simple-discovery/amqp`](packages/amqp/README.md) | [`packages/amqp/`](packages/amqp) | AMQP 0-9-1 (RabbitMQ) fanout exchange per namespace, one private queue per node. |
-| [`@simple-discovery/core`](packages/core/README.md) | [`packages/core/`](packages/core) | Shared contract, signed packet and the base class of the broker transports. Installed with them. |
 
 Which one to pick:
 
@@ -21,6 +20,10 @@ Which one to pick:
   broadcast carries a `hello` flag and every node answers exactly once. After a broker reconnect the
   node says hello again.
 - **http**: a central registry that also reports nodes going offline.
+
+Each package is self-contained: install only the one you use. The shared code lives in
+[`packages/core`](packages/core/README.md), a private workspace package that is bundled (code and
+types) into every published package at build time and never published on its own.
 
 ```ts
 import { UdpDiscovery } from '@simple-discovery/udp'
@@ -74,7 +77,7 @@ published on its own.
 ```bash
 bun install
 docker compose up -d   # Redis, NATS and RabbitMQ for the broker tests
-bun run build          # every package, core first
+bun run build          # every package (tsup bundles core into each)
 bun run test           # every package
 ```
 
@@ -98,13 +101,12 @@ End-to-end runs on real machines, driven over SSH (see the comments at the top o
 
 ## Publishing
 
-Build everything, then publish from each package directory. Publish `core` before `redis`, `nats`
-and `amqp`, which depend on it (`bun publish` turns `workspace:^` into the released version); `udp`
-and `http` stand alone.
+Build everything, then publish from each package directory, in any order: no published package
+depends on another. `core` is private and is never published.
 
 ```bash
 bun run build
-for p in core redis nats amqp udp http; do (cd packages/$p && bun publish); done
+for p in udp http redis nats amqp; do (cd packages/$p && bun publish); done
 ```
 
 ## License
