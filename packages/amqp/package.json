@@ -1,13 +1,13 @@
 {
-  "name": "@simple-discovery/udp",
-  "version": "3.0.1",
-  "description": "Generic signed UDP discovery transport using the simple-discovery envelope",
+  "name": "@simple-discovery/amqp",
+  "version": "3.0.0",
+  "description": "Service discovery over AMQP 0-9-1 (RabbitMQ) fanout exchanges with the simple-discovery signed envelope",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/flygo-opensource/simple-discovery.git",
-    "directory": "packages/udp"
+    "directory": "packages/amqp"
   },
-  "homepage": "https://github.com/flygo-opensource/simple-discovery/tree/main/packages/udp#readme",
+  "homepage": "https://github.com/flygo-opensource/simple-discovery/tree/main/packages/amqp#readme",
   "type": "module",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
@@ -22,17 +22,15 @@
   "files": [
     "build/**/*",
     "README.md",
-    "CHANGELOG.md",
-    "AGENT_GUIDE.md"
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "rm -rf build && tsc -p tsconfig.json",
-    "test": "bun test tests/*.test.ts",
-    "e2e:lan-peers": "bash e2e/lan-peers/run.sh"
+    "test": "bun test tests/*.test.ts"
   },
   "dependencies": {
-    "msgpackr": "^1.12.1",
-    "rxjs": "^7.8.2"
+    "@simple-discovery/core": "workspace:^",
+    "amqplib": "^2.0.1"
   },
   "devDependencies": {
     "@types/bun": "^1.2.23",
@@ -43,5 +41,10 @@
   "author": "Duong Van Ba",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "discovery",
+    "service-discovery",
+    "amqp"
+  ]
 }

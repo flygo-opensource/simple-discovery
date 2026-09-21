@@ -1,0 +1,11 @@
+# Brokers for the redis, nats and amqp test suites: docker compose up -d
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  nats:
+    image: nats:2-alpine
+    ports: ["4222:4222"]
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    ports: ["5672:5672"]

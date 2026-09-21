@@ -5,7 +5,8 @@ nhau, không cần server trung tâm. Tìm nhau bằng multicast, hoặc bằng 
 multicast. Mọi gói đều được ký, nên chỉ các process dùng chung khoá mới thấy nhau.
 
 Gói không phụ thuộc framework nào: payload là dữ liệu tuỳ ý của ứng dụng. Với Spider Mesh, xem
-[phần tích hợp](#dùng-với-spider-mesh).
+[phần tích hợp](#dùng-với-spider-mesh). Giao việc tích hợp cho một coding agent thì đưa nó
+[`AGENT_GUIDE.md`](AGENT_GUIDE.md) (có sẵn trong gói npm).
 
 ## Cài đặt
 

@@ -8,6 +8,19 @@ nodes find each other without changing the code that consumes discovery.
 | --- | --- | --- |
 | [`@simple-discovery/udp`](packages/udp/README.md) | [`packages/udp/`](packages/udp) | Signed UDP packets over multicast, explicit peers (IP or hostname), or both. Works over VPNs such as NetBird or WireGuard with `multicast: false`. |
 | [`@simple-discovery/http`](packages/http/README.md) | [`packages/http/`](packages/http) | An HTTP registry; nodes register, heartbeat and deregister over HTTP. |
+| [`@simple-discovery/redis`](packages/redis/README.md) | [`packages/redis/`](packages/redis) | Redis pub/sub channel per namespace. |
+| [`@simple-discovery/nats`](packages/nats/README.md) | [`packages/nats/`](packages/nats) | NATS subject per namespace. |
+| [`@simple-discovery/amqp`](packages/amqp/README.md) | [`packages/amqp/`](packages/amqp) | AMQP 0-9-1 (RabbitMQ) fanout exchange per namespace, one private queue per node. |
+| [`@simple-discovery/core`](packages/core/README.md) | [`packages/core/`](packages/core) | Shared contract, signed packet and the base class of the broker transports. Installed with them. |
+
+Which one to pick:
+
+- **udp**: no infrastructure, nodes on one LAN or VPN.
+- **redis**, **nats**, **amqp**: you already run that broker, or nodes span networks where multicast
+  does not reach (clouds, Kubernetes). A node that joins late learns the others at once: its first
+  broadcast carries a `hello` flag and every node answers exactly once. After a broker reconnect the
+  node says hello again.
+- **http**: a central registry that also reports nodes going offline.
 
 ```ts
 import { UdpDiscovery } from '@simple-discovery/udp'
@@ -46,7 +59,10 @@ Options passed to the constructor win; otherwise each package reads environment 
 | `SIMPLE_DISCOVERY_UDP_MULTICAST_ADDRESS` | udp | `239.0.1.1` |
 | `SIMPLE_DISCOVERY_UDP_WHITELIST_ADDRESS` | udp | none; comma-separated IPs, hostnames or `/24` prefixes |
 | `SIMPLE_DISCOVERY_UDP_BROADCAST_COPIES` | udp | `3` |
-| `SIMPLE_DISCOVERY_UDP_DEBUG`, `SIMPLE_DISCOVERY_HTTP_DEBUG` | udp, http | off; prints network errors to stderr |
+| `SIMPLE_DISCOVERY_REDIS_URL` | redis | `redis://127.0.0.1:6379` |
+| `SIMPLE_DISCOVERY_NATS_SERVERS` | nats | `nats://127.0.0.1:4222`; comma-separated |
+| `SIMPLE_DISCOVERY_AMQP_URL` | amqp | `amqp://127.0.0.1` |
+| `SIMPLE_DISCOVERY_<TRANSPORT>_DEBUG` | all | off; `UDP`, `HTTP`, `REDIS`, `NATS` or `AMQP`, prints network errors to stderr |
 
 These replace the `OHAYO_*` variables of the pre-release `@ohayo/*` packages.
 
@@ -57,9 +73,14 @@ published on its own.
 
 ```bash
 bun install
-bun run build   # every package
-bun run test    # every package
+docker compose up -d   # Redis, NATS and RabbitMQ for the broker tests
+bun run build          # every package, core first
+bun run test           # every package
 ```
+
+The redis, nats and amqp suites skip themselves when their broker is not reachable, except in CI
+(`CI` set), where a missing broker fails the run. Point them elsewhere with `SIMPLE_DISCOVERY_REDIS_URL`,
+`SIMPLE_DISCOVERY_NATS_SERVERS` and `SIMPLE_DISCOVERY_AMQP_URL`.
 
 Work on one package:
 
@@ -69,16 +90,21 @@ bun run build
 bun run test
 ```
 
-`packages/udp/e2e/lan-peers/run.sh` runs the peers mode between this machine and a second Linux machine; see
-the comments at the top of the script.
+End-to-end runs on real machines, driven over SSH (see the comments at the top of each script):
+
+- `packages/udp/e2e/lan-peers/run.sh`: UDP peers mode between this machine and a second Linux machine.
+- `e2e/brokers/run.sh`: Redis, NATS and AMQP across this machine and several Linux hosts, with the
+  brokers in Docker on one of them, including a broker restart mid-run.
 
 ## Publishing
 
-Publish from the package directory, in any order (the packages do not depend on each other):
+Build everything, then publish from each package directory. Publish `core` before `redis`, `nats`
+and `amqp`, which depend on it (`bun publish` turns `workspace:^` into the released version); `udp`
+and `http` stand alone.
 
 ```bash
-(cd packages/udp && bun run build && bun publish)
-(cd packages/http && bun run build && bun publish)
+bun run build
+for p in core redis nats amqp udp http; do (cd packages/$p && bun publish); done
 ```
 
 ## License

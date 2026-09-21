@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.1
+
+- Ship `AGENT_GUIDE.md`: a step-by-step integration guide for coding agents (heartbeat and offline
+  detection template, required rules, env vars, network modes, self-checks).
+
 ## 3.0.0 — stable generic discovery contract
 
 - Thêm `multicast: false` (`SIMPLE_DISCOVERY_UDP_MULTICAST=off`) để chỉ gửi tới `peers`, cho mạng không chuyển
