@@ -1,10 +1,10 @@
 {
   "name": "ohayo",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "description": "Ohayo discovery transports: one signed envelope, several ways to deliver it",
   "workspaces": [
-    "udp",
-    "http"
+    "packages/*"
   ],
   "scripts": {
     "build": "bun run --filter '@ohayo/*' build",

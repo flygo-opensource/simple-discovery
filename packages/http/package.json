@@ -5,9 +5,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/flygo-opensource/ohayo.git",
-    "directory": "http"
+    "directory": "packages/http"
   },
-  "homepage": "https://github.com/flygo-opensource/ohayo/tree/main/http#readme",
+  "homepage": "https://github.com/flygo-opensource/ohayo/tree/main/packages/http#readme",
   "type": "module",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",

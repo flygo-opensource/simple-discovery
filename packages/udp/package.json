@@ -5,9 +5,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/flygo-opensource/ohayo.git",
-    "directory": "udp"
+    "directory": "packages/udp"
   },
-  "homepage": "https://github.com/flygo-opensource/ohayo/tree/main/udp#readme",
+  "homepage": "https://github.com/flygo-opensource/ohayo/tree/main/packages/udp#readme",
   "type": "module",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
