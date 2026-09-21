@@ -1,0 +1,14 @@
+{
+  "name": "ohayo",
+  "private": true,
+  "description": "Ohayo discovery transports: one signed envelope, several ways to deliver it",
+  "workspaces": [
+    "udp",
+    "http"
+  ],
+  "scripts": {
+    "build": "bun run --filter '@ohayo/*' build",
+    "test": "bun run --filter '@ohayo/*' test"
+  },
+  "license": "MIT"
+}
