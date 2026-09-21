@@ -6,6 +6,10 @@
   multicast như VPN NetBird/WireGuard. Đã kiểm chứng giữa macOS và Linux qua NetBird, peers là hostname.
 - `peers` nhận hostname. Trước đây mọi chuỗi có 3 phần bị coi là dải `/24`, nên tên như
   `worker.netbird.cloud` bị bung thành 254 địa chỉ sai; tên có 1, 2 hay 5 phần thì bị bỏ.
+- Sửa: `broadcast(message, targetIp)` tới chính máy này (ví dụ `127.0.0.1`) không tới process khác
+  trên máy khi chạy Linux. Linux giao gói unicast cho socket bind cuối cùng, có thể là socket của
+  chính bên gửi, và gói bị bỏ vì là của chính mình. Giờ gửi có đích là địa chỉ local thì cũng phát
+  lại trong máy. Lỗi lộ ra khi CI lần đầu chạy trên Linux.
 - Discovery nhớ địa chỉ của node đã gửi message hợp lệ và gửi các broadcast sau tới đó, nên `peers`
   chỉ cần khai một chiều.
 

@@ -335,4 +335,20 @@ describe.each<Delivery>(['first-bound', 'last-bound'])('@ohayo/udp peers across 
         })
         expect(await waitUntil(() => (seenByNew.get('old') ?? []).some(copy => copy.seq === 2))).toBe(true)
     })
+
+    test('a targeted broadcast to this host reaches the other processes on it', async () => {
+        // Linux giao gói unicast cho socket bind cuối cùng, có thể là socket của chính bên gửi.
+        const lan = new FakeLan(delivery)
+        const host = lan.host('198.51.100.10')
+        const receiver = spawn(host, 'receiver')
+        const sender = spawn(host, 'sender')
+        const seen = record(receiver)
+
+        await sender.broadcast({
+            node_id: 'sender', namespace: 'lan-test', tags: ['ohayo', 'lan'],
+            version: '1', created_at: Date.now(), seq: 1, data: { host: host.ip },
+        }, '127.0.0.1')
+
+        expect(await waitUntil(() => seen.has('sender'))).toBe(true)
+    })
 })

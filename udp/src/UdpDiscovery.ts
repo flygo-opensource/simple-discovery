@@ -95,7 +95,10 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
         const raw = pack(packet)
         for (let copy = 0; copy < this.#broadcastCopies; copy++) {
             await Promise.all(targets.map(ip => this.#send(this.#externalSocket, raw, ip)))
-            if (!targetIp) await this.#sendLocal(raw)
+            // Gói unicast tới máy này chỉ tới MỘT socket (Linux: socket bind cuối cùng, có thể là
+            // của chính process gửi, và nó bỏ gói của chính mình). Phát lại trong máy để mọi process
+            // đều nhận được.
+            if (!targetIp || targets.some(target => this.#isLocalAddress(target))) await this.#sendLocal(raw)
             if (copy + 1 < this.#broadcastCopies) await new Promise(resolve => setTimeout(resolve, 5))
         }
     }
