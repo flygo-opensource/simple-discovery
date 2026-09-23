@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.0.2
+
+- Fix: with multicast reaching another host, relayed packets bounced between hosts until
+  `packetTtlMs` expired. A packet from another host is relayed to the other processes on this host,
+  and the relay went out on every interface, including the LAN one. The other host took it as a
+  fresh remote packet and relayed it back. Two hosts on one LAN (macOS and Linux) exchanged 10,000 to
+  50,000 copies of each message in 6 seconds. Relays now go only over the loopback interface, so
+  they never leave the host, and a relayed packet is never relayed again.
+- Fix: when only one side lists the other in `peers`, the other host never saw the second process
+  on this host. A unicast packet reaches one socket only; the other process saw the relayed copy
+  from `127.0.0.1`, so it never learned the sender's address and never sent to it. The relay now
+  carries the original sender address, so every process learns the peer and `remote_host` is the
+  real sender instead of `127.0.0.1` or one of this host's own addresses.
+- Copies of the same packet (`broadcastCopies`, both sockets, multicast plus peers, relays) are now
+  delivered once. Two `broadcast()` calls are still two messages, even with identical content.
+- The in-host relay has a new format. Upgrade every process on a host together: an older process
+  ignores relays from a newer one.
+
 ## 3.0.1
 
 - Self-contained: the shared core (contract, signed packet, broker base class) is bundled into this

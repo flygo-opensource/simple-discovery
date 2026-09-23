@@ -103,8 +103,9 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
    là không thấy nhau và **không có lỗi nào báo**.
 4. **Mọi process phải dùng cùng `port`** (mặc định `11001`) và mở UDP cổng đó trên firewall/VPN.
 5. **Đồng hồ các máy phải đồng bộ (NTP)**. Gói lệch giờ quá `packetTtlMs` (30 giây) bị bỏ im lặng.
-6. **Không dựa vào thứ tự hay tính duy nhất của message**: gói có thể mất, trùng hoặc đến sai thứ tự.
-   Dùng `seq` để bỏ message cũ nếu ứng dụng cần.
+6. **Không dựa vào thứ tự hay tính duy nhất của message**: gói có thể mất hoặc đến sai thứ tự, và
+   discovery chỉ bỏ bản sao của cùng một gói (không gộp hai lần `broadcast()`). Dùng `seq` để bỏ
+   message cũ nếu ứng dụng cần.
 7. **`broadcast()` tự đợi socket sẵn sàng**; không cần đợi `status$` trước khi gọi.
 8. **Gọi `close()` khi tắt process** để giải phóng cổng UDP. Gọi nhiều lần không sao.
 9. **`remote_host`** do discovery tự điền khi nhận (địa chỉ IP người gửi). Đừng đặt nó khi gửi, trừ

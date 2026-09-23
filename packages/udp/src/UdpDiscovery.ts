@@ -33,11 +33,16 @@ export type UdpDiscoveryPacket<T> = {
 
 type UnsignedPacket<T> = Omit<UdpDiscoveryPacket<T>, 'signature'>
 type DecodedPacket<T> = { packet: UdpDiscoveryPacket<T>; unsigned: UnsignedPacket<T> }
+/** Bản phát lại trong máy: gói gốc nguyên vẹn kèm địa chỉ đã gửi nó. Chỉ đi qua loopback. */
+type RelayPacket = { relay: 1; from: string; raw: Uint8Array }
 export type UdpDiscoveryStatus = 'not_ready' | 'ready' | 'closed'
 
 const DEFAULT_PORT = 11001
 const DEFAULT_MULTICAST_ADDRESS = '239.0.1.1'
 const DEFAULT_PACKET_TTL_MS = 30_000
+const LOOPBACK = '127.0.0.1'
+/** Trần số chữ ký nhớ để lọc gói trùng, để gói rác không làm phình bộ nhớ. */
+const MAX_SEEN_PACKETS = 10_000
 
 export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements Discovery<T> {
     readonly #events = new Subject<DiscoveryMessage<T>>()
@@ -55,6 +60,8 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
     readonly #packetTtlMs: number
     readonly #broadcastCopies: number
     readonly #replyMarkers = new Map<string, string>()
+    /** Chữ ký gói đã thấy -> thời điểm hết hạn, theo thứ tự thêm vào (cũng là thứ tự hết hạn). */
+    readonly #seenPackets = new Map<string, number>()
     #localMessage?: DiscoveryMessage<T>
 
     readonly status$ = this.#status.asObservable()
@@ -97,8 +104,9 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
             await Promise.all(targets.map(ip => this.#send(this.#externalSocket, raw, ip)))
             // Gói unicast tới máy này chỉ tới MỘT socket (Linux: socket bind cuối cùng, có thể là
             // của chính process gửi, và nó bỏ gói của chính mình). Phát lại trong máy để mọi process
-            // đều nhận được.
-            if (!targetIp || targets.some(target => this.#isLocalAddress(target))) await this.#sendLocal(raw)
+            // đều nhận được. Loopback không mất gói nên một bản là đủ.
+            const local = !targetIp || targets.some(target => this.#isLocalAddress(target))
+            if (copy === 0 && local) await this.#relayLocal(raw, LOOPBACK)
             if (copy + 1 < this.#broadcastCopies) await new Promise(resolve => setTimeout(resolve, 5))
         }
     }
@@ -113,11 +121,14 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
     }
 
     #bindSockets() {
-        const externalReady = this.#bindSocket(this.#externalSocket, (raw, remote) => {
-            void this.#onExternalMessage(raw, remote)
-        })
-        const localReady = this.#bindSocket(this.#localSocket, (raw, remote) => {
-            this.#onLocalMessage(raw, remote)
+        // Hai socket cùng bind một cổng nên hệ điều hành chọn MỘT socket nhận gói unicast (macOS:
+        // socket bind đầu tiên, Linux: socket bind cuối cùng); vì vậy cả hai xử lý gói như nhau.
+        const onMessage = (raw: Buffer, remote: RemoteInfo) => this.#onMessage(raw, remote)
+        const externalReady = this.#bindSocket(this.#externalSocket, onMessage)
+        const localReady = this.#bindSocket(this.#localSocket, onMessage, () => {
+            // Bản phát lại chỉ đi qua loopback nên không bao giờ ra mạng. Nếu đi qua interface LAN,
+            // máy khác nhận nó như gói "từ xa", phát lại tiếp, và hai máy đẩy gói qua lại mãi.
+            try { this.#localSocket.setMulticastInterface(LOOPBACK) } catch { }
         })
 
         void Promise.all([externalReady, localReady]).then(() => {
@@ -125,7 +136,7 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
         })
     }
 
-    #bindSocket(socket: Socket, onMessage: (raw: Buffer, remote: RemoteInfo) => void) {
+    #bindSocket(socket: Socket, onMessage: (raw: Buffer, remote: RemoteInfo) => void, onListening?: () => void) {
         socket.on('message', onMessage)
         socket.on('error', error => this.#onError(error))
         const ready = new Promise<void>(resolve => socket.once('listening', () => {
@@ -136,44 +147,46 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
                 if (!address.includes('.') || address === '0.0.0.0') continue
                 try { socket.addMembership(this.#multicastAddress, address) } catch { }
             }
+            onListening?.()
             resolve()
         }))
         socket.bind(this.#port, '0.0.0.0')
         return ready
     }
 
-    async #onExternalMessage(raw: Buffer, remote: RemoteInfo) {
+    #onMessage(raw: Buffer, remote: RemoteInfo) {
         if (this.#isClosed()) return
+        const relayed = this.#decodeRelay(raw)
+        if (relayed) {
+            // Bản phát lại chỉ hợp lệ khi đến từ chính máy này, và không bao giờ phát lại lần nữa.
+            if (this.#isLocalAddress(remote.address)) this.#receive(relayed.raw, relayed.from, false)
+            return
+        }
+        // Gói từ máy khác, hoặc từ một process trong máy không phải discovery (không gửi từ cổng
+        // discovery), chỉ tới một socket; phải phát lại thì các process khác trên máy mới thấy.
+        // Gói của discovery trong máy thì bên gửi đã tự phát lại.
+        const relay = !this.#isLocalAddress(remote.address) || remote.port !== this.#port
+        this.#receive(raw, remote.address, relay)
+    }
+
+    #receive(raw: Buffer, from: string, relay: boolean) {
         const decoded = this.#decode(raw)
         if (!decoded) return
-
-        if (this.#shouldRelay(decoded, remote)) await this.#relayLocal(raw)
-        this.#consume(decoded, remote.address)
-    }
-
-    #onLocalMessage(raw: Buffer, remote: RemoteInfo) {
-        if (this.#isClosed()) return
-        const decoded = this.#decode(raw)
-        if (!decoded) return
-        // Hai socket cùng bind một cổng nên hệ điều hành chọn MỘT socket nhận gói unicast, và chọn
-        // cái nào là tuỳ OS (macOS: socket bind đầu tiên). Gói từ máy khác có thể rơi vào đây thay vì
-        // externalSocket; không phát lại thì các process khác trên cùng máy không bao giờ thấy nó.
-        if (this.#shouldRelay(decoded, remote)) void this.#relayLocal(raw)
-        this.#consume(decoded, remote.address)
-    }
-
-    #shouldRelay(decoded: DecodedPacket<T>, remote: RemoteInfo) {
-        const signatureMatches = this.#signatureMatches(decoded.packet.signature, this.#sign(decoded.unsigned))
-        return !this.#isLocalAddress(remote.address)
-            || (remote.port !== this.#port && !signatureMatches)
-    }
-
-    #consume({ packet, unsigned }: DecodedPacket<T>, remoteHost: string) {
+        const { packet, unsigned } = decoded
         if (Math.abs(Date.now() - packet.timestamp) > this.#packetTtlMs) return
+        // Một gói tới nhiều lần: `broadcastCopies` bản, qua cả hai socket, qua multicast lẫn peers,
+        // và qua bản phát lại của mọi process trong máy. Chỉ xử lý bản đầu tiên.
+        if (!this.#firstSight(packet.signature)) return
+        // Phát lại trước khi kiểm chữ ký: process khác trên máy có thể dùng key khác cùng cổng.
+        if (relay) void this.#relayLocal(raw, from)
         if (!this.#signatureMatches(packet.signature, this.#sign(unsigned))) return
+        this.#consume(packet, from)
+    }
+
+    #consume(packet: UdpDiscoveryPacket<T>, remoteHost: string) {
         if (!this.#validInbound(packet.message)) return
-        // Bản phát lại trong máy có thể tới trước bản gốc từ máy kia; khi đó lần trả lời đầu chưa có
-        // địa chỉ người gửi. Vì vậy biết thêm địa chỉ mới cũng là lý do để trả lời lại.
+        // Bản phát lại mang địa chỉ máy gửi gốc, nên process không nhận trực tiếp gói unicast vẫn
+        // học được peer. Biết thêm địa chỉ mới cũng là lý do để trả lời lại.
         const newPeer = !this.#isLocalAddress(remoteHost) && !this.#learnedPeers.has(remoteHost)
         if (newPeer) this.#learnedPeers.add(remoteHost)
         const message = {
@@ -187,6 +200,28 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
             this.#replyMarkers.set(message.node_id, marker)
             if (this.#localMessage) void this.broadcast(this.#localMessage)
         }
+    }
+
+    #decodeRelay(raw: Buffer): { from: string; raw: Buffer } | undefined {
+        try {
+            const packet = unpack(raw) as Partial<RelayPacket>
+            if (packet.relay !== 1 || typeof packet.from !== 'string' || !(packet.raw instanceof Uint8Array)) return
+            return { from: packet.from, raw: Buffer.from(packet.raw) }
+        } catch {
+            return
+        }
+    }
+
+    #firstSight(signature: string) {
+        const now = Date.now()
+        for (const [key, expiresAt] of this.#seenPackets) {
+            if (expiresAt > now && this.#seenPackets.size < MAX_SEEN_PACKETS) break
+            this.#seenPackets.delete(key)
+        }
+        if (this.#seenPackets.has(signature)) return false
+        // Gói còn hợp lệ tới khi lệch quá `packetTtlMs` về cả hai phía.
+        this.#seenPackets.set(signature, now + 2 * this.#packetTtlMs)
+        return true
     }
 
     #decode(raw: Buffer): DecodedPacket<T> | undefined {
@@ -248,19 +283,10 @@ export class UdpDiscovery<T> extends Observable<DiscoveryMessage<T>> implements 
         }
     }
 
-    async #relayLocal(raw: Buffer) {
-        await Promise.all([
-            this.#sendLocal(raw),
-            this.#send(this.#localSocket, raw, '127.0.0.1'),
-        ])
-    }
-
-    async #sendLocal(raw: Buffer) {
-        for (const address of this.#localAddresses) {
-            if (!address.includes('.') || address === '0.0.0.0') continue
-            try { this.#localSocket.setMulticastInterface(address) } catch { }
-            await this.#send(this.#localSocket, raw, this.#multicastAddress)
-        }
+    /** Gửi gói cho mọi process discovery trên máy này, kèm địa chỉ đã gửi gói tới đây. */
+    #relayLocal(raw: Buffer, from: string) {
+        const relay: RelayPacket = { relay: 1, from, raw }
+        return this.#send(this.#localSocket, pack(relay), this.#multicastAddress)
     }
 
     #send(socket: Socket, raw: Buffer, host: string): Promise<void> {

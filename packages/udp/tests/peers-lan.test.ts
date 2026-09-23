@@ -10,7 +10,9 @@ import { UdpDiscovery, type DiscoveryMessage } from '../src/index.js'
  * `createSocket()`:
  *
  * - mỗi host có IP riêng trong dải TEST-NET-2 (198.51.100.0/24), không trùng interface thật nào;
- * - multicast KHÔNG đi qua giữa các host (router/Wi-Fi chặn multicast — lý do phải dùng peers);
+ * - multicast KHÔNG đi qua giữa các host (router/Wi-Fi chặn multicast — lý do phải dùng peers),
+ *   trừ khi LAN được tạo với `multicastAcrossHosts`; kể cả khi đó, gói gửi qua interface loopback
+ *   không bao giờ rời host;
  * - unicast tới IP của host khác thì tới được, IP nguồn là IP host gửi (nên bị coi là "từ xa");
  * - nhiều socket cùng bind một cổng thì một gói unicast chỉ tới MỘT socket. Socket nào nhận là
  *   tuỳ hệ điều hành, nên mọi kịch bản chạy với cả hai chính sách `first-bound` và `last-bound`.
@@ -29,7 +31,7 @@ class FakeLan {
     readonly hosts = new Map<string, FakeHost>()
     /** DNS giả: hostname -> IP. */
     readonly names = new Map<string, string>()
-    constructor(readonly delivery: Delivery) {}
+    constructor(readonly delivery: Delivery, readonly multicastAcrossHosts = false) {}
 
     host(ip: string, hostname?: string) {
         const host = new FakeHost(this, ip)
@@ -48,10 +50,18 @@ class FakeLan {
             }, 0)
         }
 
-        // Multicast chỉ tới các socket cùng host đã join group (loopback bật, kể cả chính mình).
+        // Multicast tới các socket cùng host đã join group (loopback bật, kể cả chính mình), và tới
+        // các host khác nếu LAN chuyển multicast và gói không gửi qua interface loopback.
         if (isMulticast(destination)) {
             for (const socket of source.boundTo(port)) {
                 if (socket.groups.has(destination)) deliver(socket, LOOPBACK)
+            }
+            if (!this.multicastAcrossHosts || from.multicastInterface === LOOPBACK) return
+            for (const host of this.hosts.values()) {
+                if (host === source) continue
+                for (const socket of host.boundTo(port)) {
+                    if (socket.groups.has(destination)) deliver(socket, source.ip)
+                }
             }
             return
         }
@@ -86,6 +96,7 @@ class FakeHost {
 class FakeSocket extends EventEmitter {
     port?: number
     closed = false
+    multicastInterface?: string
     readonly groups = new Set<string>()
     readonly sentTo: string[] = []
 
@@ -106,7 +117,9 @@ class FakeSocket extends EventEmitter {
 
     setMulticastTTL() {}
     setMulticastLoopback() {}
-    setMulticastInterface() {}
+    setMulticastInterface(address: string) {
+        this.multicastInterface = address
+    }
 
     send(raw: Buffer, offset: number, length: number, port: number, destination: string, callback?: (error: Error | null) => void) {
         const data = Buffer.from(raw.subarray(offset, offset + length))
@@ -221,10 +234,9 @@ describe.each<Delivery>(['first-bound', 'last-bound'])('@simple-discovery/udp pe
         await announce(b, 'b', hostB)
 
         expect(await waitUntil(() => seenByA.has('b') && seenByB.has('a'))).toBe(true)
-        // Có ít nhất một bản mang IP host gửi, tức là gói đã đi qua đường peer. Các bản phát lại
-        // qua multicast nội bộ thì mang `127.0.0.1`; `remote_host` không được ai đọc nên vô hại.
-        expect(remoteHosts(seenByA.get('b'))).toContain(hostB.ip)
-        expect(remoteHosts(seenByB.get('a'))).toContain(hostA.ip)
+        // Bản phát lại trong máy mang theo IP host gửi, nên mọi bản đều có `remote_host` đúng.
+        expect(new Set(remoteHosts(seenByA.get('b')))).toEqual(new Set([hostB.ip]))
+        expect(new Set(remoteHosts(seenByB.get('a')))).toEqual(new Set([hostA.ip]))
     })
 
     test('a message from a peer reaches every process on the receiving host', async () => {
@@ -250,6 +262,56 @@ describe.each<Delivery>(['first-bound', 'last-bound'])('@simple-discovery/udp pe
         const settled = copies()
         await Bun.sleep(300)
         expect(copies()).toBe(settled)
+    })
+
+    test('a peer listed on one side only learns every process on the other host', async () => {
+        // Gói unicast từ A chỉ tới một process trên B. Process còn lại chỉ thấy bản phát lại trong
+        // máy; bản đó phải mang IP của A, nếu không process này không bao giờ biết đường gửi tới A.
+        const lan = new FakeLan(delivery)
+        const hostA = lan.host('198.51.100.10')
+        const hostB = lan.host('198.51.100.20')
+        const b1 = spawn(hostB, 'b1', [], false)
+        const b2 = spawn(hostB, 'b2', [], false)
+        const seenByB1 = record(b1)
+        const seenByB2 = record(b2)
+        await announce(b1, 'b1', hostB)
+        await announce(b2, 'b2', hostB)
+
+        const a = spawn(hostA, 'a', [hostB.ip], false)
+        const seenByA = record(a)
+        await announce(a, 'a', hostA)
+
+        expect(await waitUntil(() => seenByA.has('b1') && seenByA.has('b2'))).toBe(true)
+        expect(new Set(remoteHosts(seenByB1.get('a')))).toEqual(new Set([hostA.ip]))
+        expect(new Set(remoteHosts(seenByB2.get('a')))).toEqual(new Set([hostA.ip]))
+    })
+
+    test('a LAN that forwards multicast does not bounce relayed packets between hosts', async () => {
+        // Bản phát lại mà ra được LAN thì host kia nhận nó như gói từ xa và phát lại tiếp, và hai
+        // host đẩy gói qua lại tới khi hết `packetTtlMs`.
+        const lan = new FakeLan(delivery, true)
+        const hostA = lan.host('198.51.100.10')
+        const hostB = lan.host('198.51.100.20')
+        const a = spawn(hostA, 'a')
+        const b1 = spawn(hostB, 'b1')
+        const b2 = spawn(hostB, 'b2')
+        const seenByA = record(a)
+        const seenByB1 = record(b1)
+        const seenByB2 = record(b2)
+
+        await announce(a, 'a', hostA)
+        await announce(b1, 'b1', hostB)
+
+        expect(await waitUntil(() => seenByB1.has('a') && seenByB2.has('a') && seenByA.has('b1'))).toBe(true)
+        const copies = () => [seenByB1.get('a'), seenByB2.get('a'), seenByA.get('b1'), seenByB2.get('b1')]
+            .map(list => list?.length ?? 0)
+        await Bun.sleep(200)
+        const settled = copies()
+        await Bun.sleep(300)
+        expect(copies()).toEqual(settled)
+        // `broadcastCopies` bản, qua hai socket và qua mọi bản phát lại, vẫn chỉ là một gói. `a` gửi
+        // thêm đúng một gói khi lần đầu thấy b1 (trả lời peer mới), nên thấy `a` tối đa hai lần.
+        for (const count of settled) expect(count).toBeLessThanOrEqual(2)
     })
 
     test('a /24 prefix peer expands to every host in that subnet', async () => {

@@ -89,7 +89,8 @@ discovery.close()
 - **Không có tin rời đi**: UDP không báo khi một process tắt hay mất mạng. Ứng dụng phải biết điều
   này bằng cách khác: hoặc tự broadcast lại định kỳ và coi process im lặng quá lâu là đã rời đi, hoặc
   (như Spider Mesh) dựa vào kết nối thật giữa các process.
-- **Không đảm bảo thứ tự**: gói có thể mất, trùng hoặc đến sai thứ tự; discovery không lọc trùng.
+- **Không đảm bảo thứ tự**: gói có thể mất hoặc đến sai thứ tự. Discovery chỉ bỏ các bản sao của
+  cùng một gói; hai lần `broadcast()` là hai message, kể cả khi nội dung giống nhau.
 
 ## Multicast và peers
 

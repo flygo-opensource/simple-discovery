@@ -1,6 +1,6 @@
 {
   "name": "@simple-discovery/udp",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Generic signed UDP discovery transport using the simple-discovery envelope",
   "repository": {
     "type": "git",

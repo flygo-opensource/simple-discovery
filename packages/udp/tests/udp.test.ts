@@ -106,18 +106,33 @@ describe('@simple-discovery/udp', () => {
         expect(count).toBe(0)
     })
 
-    test('does not deduplicate or reorder valid messages', async () => {
+    test('does not deduplicate or reorder distinct messages', async () => {
         const port = randomPort()
         const receiver = createDiscovery('receiver', port)
         await ready(receiver)
         const seqs: number[] = []
         receiver.subscribe(event => seqs.push(event.seq))
 
-        for (const seq of [2, 1, 1, 3]) {
-            await sendRaw(rawPacket('test-key', message('sender', seq)), port)
+        // Hai message cùng seq nhưng khác created_at là hai message khác nhau.
+        const now = Date.now()
+        for (const [index, seq] of [2, 1, 1, 3].entries()) {
+            await sendRaw(rawPacket('test-key', { ...message('sender', seq), created_at: now + index }), port)
         }
         await Bun.sleep(150)
         expect(seqs).toEqual([2, 1, 1, 3])
+    })
+
+    test('delivers the same packet once however many copies arrive', async () => {
+        const port = randomPort()
+        const receiver = createDiscovery('receiver', port)
+        await ready(receiver)
+        let count = 0
+        receiver.subscribe(() => count++)
+
+        const raw = rawPacket('test-key', message('sender', 1))
+        for (let copy = 0; copy < 3; copy++) await sendRaw(raw, port)
+        await Bun.sleep(150)
+        expect(count).toBe(1)
     })
 
     test('validates outbound envelopes', async () => {
@@ -170,7 +185,7 @@ function message(node_id: string, seq: number): DiscoveryMessage<Metadata> {
     }
 }
 
-function rawPacket(key: string, body: DiscoveryMessage<Metadata>, timestamp = Date.now()) {
+function rawPacket(key: string, body: DiscoveryMessage<Metadata>, timestamp = body.created_at) {
     const unsigned: Omit<UdpDiscoveryPacket<Metadata>, 'signature'> = {
         version: 1,
         sender_id: body.node_id,
